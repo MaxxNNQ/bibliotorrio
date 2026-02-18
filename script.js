@@ -1,11 +1,6 @@
-
 let DATA = null;
 
 const $ = (sel) => document.querySelector(sel);
-
-function escapeHtml(s){
-  return String(s).replace(/[&<>"']/g, (c)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
-}
 
 function norm(s){ return (s||"").toLowerCase(); }
 
@@ -40,34 +35,50 @@ function render(list){
 
     meta.appendChild(author);
     meta.appendChild(title);
-   
+
     card.appendChild(img);
     card.appendChild(meta);
 
     function openModal(){
-      $("#mCover").src = b.cover;
-      $("#mCover").alt = `${b.title} — обложка`;
-      $("#mAuthor").textContent = b.author;
-      $("#mTitle").textContent = b.title;
-      $("#mDesc").textContent = b.desc;
-      $("#modal").setAttribute("aria-hidden","false");
+      const mCover = $("#mCover");
+      const mAuthor = $("#mAuthor");
+      const mTitle = $("#mTitle");
+      const mDesc  = $("#mDesc");
+      const modal  = $("#modal");
+
+      if (mCover) { mCover.src = b.cover; mCover.alt = `${b.title} — обложка`; }
+      if (mAuthor) mAuthor.textContent = b.author || "";
+      if (mTitle)  mTitle.textContent  = b.title  || "";
+      if (mDesc)   mDesc.textContent   = b.desc   || "";
+
+      if (modal) modal.setAttribute("aria-hidden","false");
       document.body.style.overflow = "hidden";
     }
 
     card.addEventListener("click", openModal);
-    card.addEventListener("keydown", (e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openModal(); }});
-    open.addEventListener("click", (e)=>{ e.preventDefault(); openModal(); });
+    card.addEventListener("keydown", (e)=>{
+      if(e.key==="Enter" || e.key===" "){
+        e.preventDefault();
+        openModal();
+      }
+    });
 
     frag.appendChild(card);
   });
 
   grid.appendChild(frag);
-  $("#count").textContent = `${list.length} / ${DATA.books.length}`;
+
+  const count = $("#count");
+  if (count && DATA && Array.isArray(DATA.books)) {
+    count.textContent = `${list.length} / ${DATA.books.length}`;
+  }
 }
 
 function applySearch(){
-  const q = norm($("#q").value).trim();
+  const qEl = $("#q");
+  const q = norm(qEl ? qEl.value : "").trim();
   if(!q){ render(DATA.books); return; }
+
   const list = DATA.books.filter((b)=>{
     const hay = norm(b.author)+" "+norm(b.title)+" "+norm(b.desc);
     return hay.includes(q);
@@ -76,28 +87,47 @@ function applySearch(){
 }
 
 function closeModal(){
-  $("#modal").setAttribute("aria-hidden","true");
+  const modal = $("#modal");
+  if (modal) modal.setAttribute("aria-hidden","true");
   document.body.style.overflow = "";
 }
 
 async function init(){
-  const res = await fetch("data.json", {cache:"no-store"});
+  const res = await fetch("data.json", { cache:"no-store" });
+  if (!res.ok) throw new Error(`data.json HTTP ${res.status}`);
   DATA = await res.json();
+
   document.title = DATA.title || "Каталог библиотеки";
-  $("#siteTitle").textContent = DATA.title || "Каталог библиотеки";
-  $("#siteSubtitle").textContent = DATA.subtitle || "Нажми на описание — увидишь, что внутри.";
+  const siteTitle = $("#siteTitle");
+  const siteSubtitle = $("#siteSubtitle");
+  if (siteTitle) siteTitle.textContent = DATA.title || "Каталог библиотеки";
+  if (siteSubtitle) siteSubtitle.textContent = DATA.subtitle || "Нажми на описание — увидишь, что внутри.";
+
+  if (!DATA || !Array.isArray(DATA.books)) throw new Error("data.json: нет массива books");
+
   render(DATA.books);
 
-  $("#q").addEventListener("input", applySearch);
+  const q = $("#q");
+  if (q) q.addEventListener("input", applySearch);
 
-  $("#modal").addEventListener("click", (e)=>{
-    const t = e.target;
-    if(t && t.dataset && t.dataset.close){ closeModal(); }
+  const modal = $("#modal");
+  if (modal) {
+    modal.addEventListener("click", (e)=>{
+      const t = e.target;
+      if(t && t.dataset && t.dataset.close){ closeModal(); }
+    });
+  }
+
+  window.addEventListener("keydown",(e)=>{
+    if(e.key==="Escape") closeModal();
   });
-  window.addEventListener("keydown",(e)=>{ if(e.key==="Escape") closeModal(); });
 }
 
 init().catch((err)=>{
   console.error(err);
-  $("#grid").innerHTML = "<div style='color:#ffb4b4'>Не смог загрузить data.json. Проверь, что файл лежит рядом с index.html.</div>";
+  const grid = $("#grid");
+  if (grid) {
+    grid.innerHTML =
+      "<div style='color:#ffb4b4'>Не смог загрузить data.json. Проверь, что файл лежит рядом с index.html, и что Pages опубликован из правильной папки.</div>";
+  }
 });
