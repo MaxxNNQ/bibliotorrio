@@ -1,85 +1,49 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Каталог библиотеки</title>
-<style>
-body{margin:0;font-family:Arial;background:#0b0e13;color:#fff}
-.header{padding:20px 24px}
-h1{margin:0 0 10px 0}
-.search{width:100%;padding:12px;border-radius:10px;border:none;background:#1a1f27;color:#fff}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:20px;padding:20px}
-.card{background:#11161d;border-radius:14px;overflow:hidden;cursor:pointer}
-.card img{width:100%;display:block}
-.card .meta{padding:10px}
-.author{font-size:12px;color:#aaa}
-.title{font-size:14px;font-weight:bold}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;padding:20px}
-.modal.open{display:flex}
-.modal-content{background:#11161d;padding:20px;border-radius:12px;max-width:600px}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Каталог библиотеки</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <header class="top">
+    <div class="wrap">
+      <div class="brand">
+        <h1 id="siteTitle">Каталог библиотеки</h1>
+        <p id="siteSubtitle" class="subtitle">Нажми на описание — увидишь, что внутри.</p>
+      </div>
 
-<div class="header">
-<h1>Каталог библиотеки</h1>
-<input id="search" class="search" placeholder="Поиск по автору, названию, аннотации...">
-</div>
+      <div class="searchRow">
+        <input id="q" type="search" placeholder="Поиск по автору, названию, аннотации…" autocomplete="off" />
+        <span id="count" class="count"></span>
+      </div>
 
-<div id="grid" class="grid"></div>
+      <div class="hint">
+        Подсказка: кликай по <b>карточке</b> или по <b>«Открыть описание»</b> — всплывёт окно с полной аннотацией.
+      </div>
+    </div>
+  </header>
 
-<div id="modal" class="modal" onclick="closeModal()">
-<div class="modal-content" onclick="event.stopPropagation()">
-<h2 id="m_title"></h2>
-<p id="m_author"></p>
-<p id="m_desc"></p>
-</div>
-</div>
+  <main class="wrap">
+    <div id="grid" class="grid" aria-live="polite"></div>
+  </main>
 
-<script>
-const data = JSON.parse(localStorage.getItem("books")||"[]");
+  <div id="modal" class="modal" aria-hidden="true">
+    <div class="modalBackdrop" data-close="1"></div>
+    <div class="modalCard" role="dialog" aria-modal="true" aria-label="Аннотация">
+      <button class="close" title="Закрыть" data-close="1">×</button>
+      <div class="modalBody">
+        <img id="mCover" class="mCover" alt="" />
+        <div class="mText">
+          <div id="mAuthor" class="mAuthor"></div>
+          <div id="mTitle" class="mTitle"></div>
+          <div id="mDesc" class="mDesc"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-function render(list){
- const grid=document.getElementById("grid");
- grid.innerHTML="";
- list.forEach(b=>{
-  const el=document.createElement("div");
-  el.className="card";
-  el.innerHTML=`
-   <img src="${b.img}">
-   <div class="meta">
-     <div class="author">${b.author}</div>
-     <div class="title">${b.title}</div>
-   </div>`;
-  el.onclick=()=>openModal(b);
-  grid.appendChild(el);
- });
-}
-
-function openModal(b){
- document.getElementById("m_title").textContent=b.title;
- document.getElementById("m_author").textContent=b.author;
- document.getElementById("m_desc").textContent=b.desc;
- document.getElementById("modal").classList.add("open");
-}
-
-function closeModal(){
- document.getElementById("modal").classList.remove("open");
-}
-
-document.getElementById("search").addEventListener("input",e=>{
- const q=e.target.value.toLowerCase();
- render(data.filter(b=>
-  b.title.toLowerCase().includes(q)||
-  b.author.toLowerCase().includes(q)||
-  b.desc.toLowerCase().includes(q)
- ));
-});
-
-render(data);
-</script>
-
+  <script src="script.js"></script>
 </body>
 </html>
