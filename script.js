@@ -1,8 +1,73 @@
 let DATA = null;
 
 const $ = (sel) => document.querySelector(sel);
-
 function norm(s){ return (s||"").toLowerCase(); }
+
+// фиксированный список рубрик (даже если пока пустые)
+const CATEGORY_ORDER = [
+  "all",
+  "публицистика",
+  "художественная литература",
+  "саморазвитие",
+  "ислам",
+  "буддизм",
+  "православие",
+];
+
+let CURRENT_CAT = "all";
+
+function labelCat(v){
+  if(v === "all") return "Все";
+  // первая буква заглавная
+  return v.charAt(0).toUpperCase() + v.slice(1);
+}
+
+function setActiveCat(val){
+  CURRENT_CAT = val || "all";
+  const wrap = $("#cats");
+  if(!wrap) return;
+  wrap.querySelectorAll("button[data-cat]").forEach(btn=>{
+    const isActive = btn.getAttribute("data-cat") === CURRENT_CAT;
+    btn.classList.toggle("is-active", isActive);
+    btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+  });
+}
+
+function buildCategoryButtons(){
+  const wrap = $("#cats");
+  if(!wrap) return;
+
+  // из данных тоже соберём категории, чтобы не потерять расширение в будущем
+  const fromData = new Set((DATA.books||[]).map(b => (b.category||"").trim()).filter(Boolean));
+  const ordered = [];
+  CATEGORY_ORDER.forEach(c => ordered.push(c));
+  // добавить новые, которых нет в фиксированном списке
+  [...fromData].sort((a,b)=>a.localeCompare(b,"ru")).forEach(c=>{
+    if(!ordered.includes(c)) ordered.push(c);
+  });
+
+  wrap.innerHTML = "";
+  const frag = document.createDocumentFragment();
+
+  ordered.forEach(c=>{
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "catBtn";
+    btn.setAttribute("data-cat", c);
+    btn.setAttribute("aria-pressed", "false");
+    btn.textContent = labelCat(c);
+
+    btn.addEventListener("click", ()=>{
+      setActiveCat(c);
+      applyFilters();
+    });
+
+    frag.appendChild(btn);
+  });
+
+  wrap.appendChild(frag);
+  setActiveCat("all");
+}
 
 function render(list){
   const grid = $("#grid");
@@ -74,15 +139,23 @@ function render(list){
   }
 }
 
-function applySearch(){
+function applyFilters(){
   const qEl = $("#q");
   const q = norm(qEl ? qEl.value : "").trim();
-  if(!q){ render(DATA.books); return; }
 
-  const list = DATA.books.filter((b)=>{
-    const hay = norm(b.author)+" "+norm(b.title)+" "+norm(b.desc);
-    return hay.includes(q);
-  });
+  let list = (DATA && Array.isArray(DATA.books)) ? DATA.books.slice() : [];
+
+  if (CURRENT_CAT !== "all"){
+    list = list.filter(b => ((b.category || "").trim()) === CURRENT_CAT);
+  }
+
+  if(q){
+    list = list.filter((b)=>{
+      const hay = norm(b.author)+" "+norm(b.title)+" "+norm(b.desc);
+      return hay.includes(q);
+    });
+  }
+
   render(list);
 }
 
@@ -97,32 +170,6 @@ async function init(){
   if (!res.ok) throw new Error(`data.json HTTP ${res.status}`);
   DATA = await res.json();
 
-  // категории
-const cats = [...new Set(DATA.books.map(b => b.category).filter(Boolean))];
-const catSel = document.getElementById("cat");
-
-if (catSel) {
-  cats.forEach(c=>{
-    const opt = document.createElement("option");
-    opt.value = c;
-    opt.textContent = c;
-    catSel.appendChild(opt);
-  });
-}
-// фильтр по категории
-if (catSel) {
-  catSel.addEventListener("change", () => {
-    const val = catSel.value;
-
-    if (val === "all") {
-      render(DATA.books);
-      return;
-    }
-
-    const filtered = DATA.books.filter(b => b.category === val);
-    render(filtered);
-  });
-}
   document.title = DATA.title || "Каталог библиотеки";
   const siteTitle = $("#siteTitle");
   const siteSubtitle = $("#siteSubtitle");
@@ -131,10 +178,11 @@ if (catSel) {
 
   if (!DATA || !Array.isArray(DATA.books)) throw new Error("data.json: нет массива books");
 
-  render(DATA.books);
+  buildCategoryButtons();
+  applyFilters();
 
   const q = $("#q");
-  if (q) q.addEventListener("input", applySearch);
+  if (q) q.addEventListener("input", applyFilters);
 
   const modal = $("#modal");
   if (modal) {

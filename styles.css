@@ -134,3 +134,40 @@ h1{margin:0;font-size:28px;letter-spacing:.2px}
   .modalBody{grid-template-columns: 1fr}
   .mTitle{font-size:18px}
 }
+
+
+/* category buttons */
+.cats{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+
+.catBtn{
+  appearance:none;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color: var(--text);
+  padding:10px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  line-height: 1;
+  cursor:pointer;
+  user-select:none;
+}
+
+.catBtn:hover{
+  border-color: rgba(255,255,255,.22);
+  background: rgba(255,255,255,.08);
+}
+
+.catBtn.is-active{
+  border-color: rgba(93,214,255,.55);
+  background: rgba(93,214,255,.14);
+}
+
+@media (max-width: 720px){
+  .cats{ gap:8px; }
+  .catBtn{ padding:10px 12px; }
+}
