@@ -101,13 +101,28 @@ async function init(){
 const cats = [...new Set(DATA.books.map(b => b.category).filter(Boolean))];
 const catSel = document.getElementById("cat");
 
-cats.forEach(c=>{
-  const opt = document.createElement("option");
-  opt.value = c;
-  opt.textContent = c;
-  catSel.appendChild(opt);
-});
+if (catSel) {
+  cats.forEach(c=>{
+    const opt = document.createElement("option");
+    opt.value = c;
+    opt.textContent = c;
+    catSel.appendChild(opt);
+  });
+}
+// фильтр по категории
+if (catSel) {
+  catSel.addEventListener("change", () => {
+    const val = catSel.value;
 
+    if (val === "all") {
+      render(DATA.books);
+      return;
+    }
+
+    const filtered = DATA.books.filter(b => b.category === val);
+    render(filtered);
+  });
+}
   document.title = DATA.title || "Каталог библиотеки";
   const siteTitle = $("#siteTitle");
   const siteSubtitle = $("#siteSubtitle");
