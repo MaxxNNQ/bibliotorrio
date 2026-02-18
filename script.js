@@ -38,15 +38,9 @@ function render(list){
     title.className = "title";
     title.textContent = b.title;
 
-    const open = document.createElement("a");
-    open.href = "javascript:void(0)";
-    open.className = "open";
-    open.textContent = "Открыть описание";
-
     meta.appendChild(author);
     meta.appendChild(title);
-    meta.appendChild(open);
-
+   
     card.appendChild(img);
     card.appendChild(meta);
 
