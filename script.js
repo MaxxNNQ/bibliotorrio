@@ -103,7 +103,27 @@ function render(list){
 
     card.appendChild(img);
     card.appendChild(meta);
+// зелёная галочка "прочитано"
+const mark = document.createElement("div");
+mark.className = "readMark";
+mark.textContent = "✓";
 
+if (b.read) {
+  mark.classList.add("on");
+}
+
+mark.addEventListener("click", (e)=>{
+  e.stopPropagation();
+  b.read = !b.read;
+
+  if (b.read) {
+    mark.classList.add("on");
+  } else {
+    mark.classList.remove("on");
+  }
+});
+
+card.appendChild(mark);
     function openModal(){
       const mCover = $("#mCover");
       const mAuthor = $("#mAuthor");
