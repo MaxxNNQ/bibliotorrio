@@ -171,3 +171,30 @@ h1{margin:0;font-size:28px;letter-spacing:.2px}
   .cats{ gap:8px; }
   .catBtn{ padding:10px 12px; }
 }
+/* READ (зелёная галочка "прочитано") */
+.readMark{
+  position:absolute;
+  top:10px;
+  right:10px;
+  width:28px;
+  height:28px;
+  border-radius:999px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+  font-size:16px;
+  cursor:pointer;
+  user-select:none;
+
+  background: rgba(0,0,0,.35);
+  border: 1px solid rgba(255,255,255,.18);
+  color: rgba(255,255,255,.55);
+  backdrop-filter: blur(6px);
+}
+
+.readMark.on{
+  background: rgba(46, 204, 113, .18);
+  border-color: rgba(46, 204, 113, .60);
+  color: rgba(46, 204, 113, 1);
+}
