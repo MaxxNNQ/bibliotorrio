@@ -97,6 +97,17 @@ async function init(){
   if (!res.ok) throw new Error(`data.json HTTP ${res.status}`);
   DATA = await res.json();
 
+  // категории
+const cats = [...new Set(DATA.books.map(b => b.category).filter(Boolean))];
+const catSel = document.getElementById("cat");
+
+cats.forEach(c=>{
+  const opt = document.createElement("option");
+  opt.value = c;
+  opt.textContent = c;
+  catSel.appendChild(opt);
+});
+
   document.title = DATA.title || "Каталог библиотеки";
   const siteTitle = $("#siteTitle");
   const siteSubtitle = $("#siteSubtitle");
